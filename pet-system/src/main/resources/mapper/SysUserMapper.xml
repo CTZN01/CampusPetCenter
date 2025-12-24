@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ashen.petsystem.user.mapper.SysUserMapper">
+
+    <resultMap id="BaseResultMap" type="com.ashen.petsystem.user.model.entity.SysUser">
+            <id property="userId" column="USER_ID" jdbcType="BIGINT"/>
+            <result property="username" column="USERNAME" jdbcType="VARCHAR"/>
+            <result property="password" column="PASSWORD" jdbcType="VARCHAR"/>
+            <result property="userCode" column="USER_CODE" jdbcType="VARCHAR"/>
+            <result property="realName" column="REAL_NAME" jdbcType="VARCHAR"/>
+            <result property="avatar" column="AVATAR" jdbcType="VARCHAR"/>
+            <result property="phone" column="PHONE" jdbcType="VARCHAR"/>
+            <result property="email" column="EMAIL" jdbcType="VARCHAR"/>
+            <result property="sex" column="SEX" jdbcType="TINYINT"/>
+            <result property="isEnabled" column="IS_ENABLED" jdbcType="TINYINT"/>
+            <result property="createTime" column="CREATE_TIME" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="UPDATE_TIME" jdbcType="TIMESTAMP"/>
+            <result property="createBy" column="CREATE_BY" jdbcType="BIGINT"/>
+            <result property="updateBy" column="UPDATE_BY" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        USER_ID,USERNAME,PASSWORD,
+        USER_CODE,REAL_NAME,AVATAR,
+        PHONE,EMAIL,SEX,
+        IS_ENABLED,CREATE_TIME,UPDATE_TIME,
+        CREATE_BY,UPDATE_BY
+    </sql>
+</mapper>
