@@ -64,7 +64,13 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
 
             return true;
         } catch (Exception e) {
+            log.error("JWT认证失败: ", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            try {
+                response.getWriter().write("JWT认证失败: " + e.getMessage());
+            } catch (IOException ioException) {
+                log.error("响应输出流异常", ioException);
+            }
             return false;
         }
     }

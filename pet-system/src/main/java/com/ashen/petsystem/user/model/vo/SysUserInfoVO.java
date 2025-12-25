@@ -2,6 +2,8 @@ package com.ashen.petsystem.user.model.vo;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 用户信息 VO (返回给前端展示)
  */
@@ -24,4 +26,6 @@ public class SysUserInfoVO {
     private String realName;
 
     private String userCode;
+
+    private List<String> roles;
 }

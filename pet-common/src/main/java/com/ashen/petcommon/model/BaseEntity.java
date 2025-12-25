@@ -1,5 +1,6 @@
 package com.ashen.petcommon.model;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -18,28 +19,28 @@ public class BaseEntity extends BasePage{
     /**
      * 创建时间
      */
-    @TableField("CREATE_TIME")
+    @TableField(value = "CREATE_TIME",fill = FieldFill.INSERT)
     @Schema(description = "创建时间")
     private Date createTime;
 
     /**
      * 更新时间
      */
-    @TableField("UPDATE_TIME")
+    @TableField(value = "UPDATE_TIME",fill = FieldFill.INSERT_UPDATE)
     @Schema(description = "更新时间")
     private Date updateTime;
 
     /**
      * 创建人
      */
-    @TableField("CREATE_BY")
+    @TableField(value = "CREATE_BY",fill = FieldFill.INSERT)
     @Schema(description = "创建人")
     private Long createBy;
 
     /**
      * 更新人
      */
-    @TableField("UPDATE_BY")
+    @TableField(value = "UPDATE_BY",fill = FieldFill.INSERT_UPDATE)
     @Schema(description = "更新人")
     private Long updateBy;
 }

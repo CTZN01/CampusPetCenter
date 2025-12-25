@@ -26,6 +26,7 @@ public class SysUser extends BaseEntity {
      * 主键ID
      */
     @TableId
+    @Schema(description = "用户ID")
     private Long userId;
 
     /**
