@@ -1,5 +1,7 @@
 package com.ashen.petcommon.model.enums;
 
+import lombok.Getter;
+
 /**
  * http所有状态码枚举
  */
@@ -76,6 +78,7 @@ public enum HttpStatusEnum {
     NOT_EXTENDED(510, "Not Extended", "获取资源所需的策略没有被满足"),
     NETWORK_AUTHENTICATION_REQUIRED(511, "Network Authentication Required", "需要进行网络授权");
 
+    @Getter
     private final int code;
     private final String reasonPhraseUS;
     private final String reasonPhraseCN;

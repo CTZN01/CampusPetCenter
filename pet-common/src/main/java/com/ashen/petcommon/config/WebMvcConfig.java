@@ -15,11 +15,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 registry.addInterceptor(jwtAuthInterceptor)
                 .addPathPatterns("/**")              // 拦截所有请求
                 .excludePathPatterns(
-                        "/users/login/**",                 // 登录接口
+                        "/rbac/user/login/**",                 // 登录接口
                         "/swagger-ui/**",             // Swagger UI
                         "/v3/api-docs/**",            // OpenAPI 文档
                         "/error",
-                        "/users/register"               // 注册接口
+                        "/rbac/user/register"               // 注册接口
                 );
     }
 }

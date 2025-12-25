@@ -22,7 +22,7 @@ public class UserUtils {
     }
 
     public static Long getCurrentUserId(){
-        return getCurrentUser().getUserId();
+        return getCurrentUser() == null ? null : getCurrentUser().getUserId();
     }
 
     public static List<String> getCurrentUserRoles(){
