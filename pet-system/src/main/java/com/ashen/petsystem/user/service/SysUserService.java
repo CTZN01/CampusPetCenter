@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public interface SysUserService extends IService<SysUser> {
     SysUserRegisterDTO registerUser(SysUserRegisterDTO sysUserRegisterDTO);
 
-    Result<SysUserLoginDTO> loginUser(SysUserLoginDTO loginDTO, HttpServletResponse response);
+    Result<SysUserInfoVO> loginUser(SysUserLoginDTO loginDTO, HttpServletResponse response);
 
     SysUserInfoVO getUserInfo(Long curUserId);
 

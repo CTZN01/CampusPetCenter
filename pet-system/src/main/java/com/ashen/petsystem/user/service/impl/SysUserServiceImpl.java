@@ -1,17 +1,23 @@
 package com.ashen.petsystem.user.service.impl;
 
+import com.ashen.petcommon.constant.RoleConstant;
 import com.ashen.petcommon.model.BaseException;
 import com.ashen.petcommon.model.Result;
 import com.ashen.petcommon.utils.BeanCopyUtils;
 import com.ashen.petcommon.utils.IdGenerator;
 import com.ashen.petcommon.utils.JwtUtils;
 import com.ashen.petsystem.exception.SysBaseExceptionEnum;
+import com.ashen.petsystem.role.model.entity.SysRole;
+import com.ashen.petsystem.role.model.entity.SysUserRole;
+import com.ashen.petsystem.role.service.SysRoleService;
+import com.ashen.petsystem.role.service.SysUserRoleService;
 import com.ashen.petsystem.user.model.dto.SysUserLoginDTO;
 import com.ashen.petsystem.user.model.dto.SysUserPasswordDTO;
 import com.ashen.petsystem.user.model.dto.SysUserRegisterDTO;
 import com.ashen.petsystem.user.model.dto.SysUserUpdateDTO;
 import com.ashen.petsystem.user.model.vo.SysUserInfoVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ashen.petsystem.user.model.entity.SysUser;
 import com.ashen.petsystem.user.service.SysUserService;
@@ -21,9 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
 * @author 17868
@@ -36,7 +45,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private SysRoleService sysRoleService;
+
+    @Autowired
+    private SysUserRoleService sysUserRoleService;
+
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public SysUserRegisterDTO registerUser(SysUserRegisterDTO registerDTO) {
         if(registerDTO == null){
             throw new BaseException(SysBaseExceptionEnum.SysBaseException000001);
@@ -59,11 +75,24 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
         // 3. 保存用户信息
         this.save(sysUser);
 
+        // 4. 分配默认角色 (例如: student)
+        // 默认角色的 roleKey 是 "student"，如果没有则需要先在数据库创建
+        SysRole defaultRole = sysRoleService.getOne(new LambdaQueryWrapper<SysRole>()
+                .eq(SysRole::getRoleKey, RoleConstant.STUDENT));
+
+        if (defaultRole != null) {
+            SysUserRole userRole = new SysUserRole();
+            userRole.setUserRoleId(IdGenerator.getInstance().generateId());
+            userRole.setUserId(sysUser.getUserId());
+            userRole.setRoleId(defaultRole.getRoleId());
+            sysUserRoleService.save(userRole);
+        }
+
         return registerDTO;
     }
 
     @Override
-    public Result<SysUserLoginDTO> loginUser(SysUserLoginDTO loginDTO, HttpServletResponse response) {
+    public Result<SysUserInfoVO> loginUser(SysUserLoginDTO loginDTO, HttpServletResponse response) {
         SysUser dbUser = this.getOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, loginDTO.getUsername()));
         // 校验用户是否存在
         if(null == dbUser){
@@ -74,16 +103,29 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
             throw new BaseException(SysBaseExceptionEnum.SysBaseException000004);
         }
 
-        //登录成功
-        SysUserLoginDTO resultDTO = new SysUserLoginDTO();
-        BeanCopyUtils.copyProperties(resultDTO, dbUser);
+        // 获取用户角色列表
+        List<SysUserRole> userRoles = sysUserRoleService.list(new LambdaQueryWrapper<SysUserRole>()
+                .eq(SysUserRole::getUserId, dbUser.getUserId()));
+
+        List<String> roleKeys = Collections.emptyList();
+        if (!userRoles.isEmpty()) {
+            List<Long> roleIds = userRoles.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
+            List<SysRole> roles = sysRoleService.listByIds(roleIds);
+            roleKeys = roles.stream().map(SysRole::getRoleKey).collect(Collectors.toList());
+        }
+
         //生成token
-        String token = JwtUtils.generateToken(dbUser.getUsername(),dbUser.getUserId(), Collections.emptySet());
+        String token = JwtUtils.generateToken(dbUser.getUsername(), dbUser.getUserId(), new HashSet<>(roleKeys));
         //加上Bearer前缀
         String bearerToken = "Bearer " + token;
         response.setHeader("Authorization", bearerToken);
 
-        return Result.success(resultDTO);
+        // 构建返回结果 (使用 VO 避免泄露密码)
+        SysUserInfoVO userInfoVO = new SysUserInfoVO();
+        BeanCopyUtils.copyProperties(userInfoVO, dbUser);
+        userInfoVO.setRoles(roleKeys);
+
+        return Result.success(userInfoVO);
     }
 
     @Override
@@ -94,6 +136,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
         }
         SysUserInfoVO vo = new SysUserInfoVO();
         BeanCopyUtils.copyProperties(vo, sysUser);
+
+        // 填充角色信息
+        List<SysUserRole> userRoles = sysUserRoleService.list(new LambdaQueryWrapper<SysUserRole>()
+                .eq(SysUserRole::getUserId, userId));
+
+        if (CollectionUtils.isNotEmpty(userRoles)) {
+            List<Long> roleIds = userRoles.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
+            List<SysRole> roles = sysRoleService.listByIds(roleIds);
+            vo.setRoles(roles.stream().map(SysRole::getRoleKey).collect(Collectors.toList()));
+        } else {
+            vo.setRoles(Collections.emptyList());
+        }
+
         return vo;
     }
 
@@ -125,7 +180,3 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
 
 
 }
-
-
-
-
