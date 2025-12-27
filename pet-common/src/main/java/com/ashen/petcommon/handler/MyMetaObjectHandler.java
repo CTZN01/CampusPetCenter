@@ -1,11 +1,13 @@
 package com.ashen.petcommon.handler;
 
+import com.ashen.petcommon.utils.DateUtils;
 import com.ashen.petcommon.utils.UserUtils;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * MyBatis-Plus 元对象字段填充处理器
@@ -18,11 +20,11 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
         // 2. 插入填充建议使用 strictInsertFill (只有当字段为 null 时才填充，避免覆盖手动设置的值)
         this.strictInsertFill(metaObject, "createBy", Long.class, userId);
-        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
+        this.strictInsertFill(metaObject, "createTime", Date.class, DateUtils.now());
 
         // 插入时，updateBy/updateTime 通常也要初始化
         this.strictInsertFill(metaObject, "updateBy", Long.class, userId);
-        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        this.strictInsertFill(metaObject, "updateTime", Date.class, DateUtils.now());
     }
 
     @Override

@@ -31,7 +31,7 @@ public class RoleController {
     @PostMapping("/add")
     @RequireRoles(RoleConstant.ADMIN)
     public Result<Boolean> add(@RequestBody SysRole role) {
-        return Result.success(sysRoleService.save(role));
+        return Result.success(sysRoleService.add(role));
     }
 
     @Operation(summary = "修改角色")

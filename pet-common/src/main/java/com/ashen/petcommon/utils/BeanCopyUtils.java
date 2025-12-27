@@ -15,6 +15,7 @@ public class BeanCopyUtils {
      *
      */
     public static <V> V copyProperties(Object source, Class<V> clazz) {
+
         if (source == null) {
             return null;
         }

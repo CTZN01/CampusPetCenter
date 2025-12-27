@@ -61,7 +61,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
         long count = this.count(new LambdaQueryWrapper<SysUser>()
                 .eq(SysUser::getUsername, registerDTO.getUsername()));
         if (count > 0) {
-            throw new BaseException(SysBaseExceptionEnum.SysBaseException000003);
+            throw new BaseException(SysBaseExceptionEnum.SysBaseException000007);
         }
         SysUser sysUser = new SysUser();
         BeanCopyUtils.copyProperties(sysUser, registerDTO);
@@ -78,7 +78,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
         // 4. 分配默认角色 (例如: student)
         // 默认角色的 roleKey 是 "student"，如果没有则需要先在数据库创建
         SysRole defaultRole = sysRoleService.getOne(new LambdaQueryWrapper<SysRole>()
-                .eq(SysRole::getRoleKey, RoleConstant.STUDENT));
+                .eq(SysRole::getRoleKey, RoleConstant.USER));
 
         if (defaultRole != null) {
             SysUserRole userRole = new SysUserRole();
