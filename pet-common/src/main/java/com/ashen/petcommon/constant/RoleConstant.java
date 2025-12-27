@@ -7,7 +7,7 @@ public class RoleConstant {
     /**
      * 学生 (默认角色)
      */
-    public static final String STUDENT = "STUDENT";
+    public static final String USER = "USER";
 
     /**
      * 管理员
@@ -16,7 +16,7 @@ public class RoleConstant {
 
 
     /**
-     * 教师
+     * 访客
      */
-    public static final String TEACHER = "TEACHER";
+    public static final String GUEST = "GUEST";
 }
