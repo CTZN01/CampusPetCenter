@@ -34,7 +34,7 @@ public class UserRoleController {
         if (count > 0) {
             return Result.success(true);
         }
-        userRole.setUserRoleId(IdGenerator.getInstance().generateId());
+        userRole.setUserRoleId(IdGenerator.generateId());
         return Result.success(sysUserRoleService.save(userRole));
     }
 

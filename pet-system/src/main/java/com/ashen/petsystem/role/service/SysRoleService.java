@@ -1,7 +1,9 @@
 package com.ashen.petsystem.role.service;
 
+import com.ashen.petsystem.role.model.dto.SysRoleDTO;
 import com.ashen.petsystem.role.model.entity.SysRole;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.github.pagehelper.PageInfo;
 
 /**
 * @author 17868
@@ -11,4 +13,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface SysRoleService extends IService<SysRole> {
 
     Boolean add(SysRole role);
+
+    PageInfo<SysRole> listPage(SysRoleDTO roleDTO);
 }

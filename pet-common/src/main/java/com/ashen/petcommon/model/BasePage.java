@@ -22,4 +22,9 @@ public class BasePage implements Serializable{
      */
     @TableField(exist = false)
     private Integer pageSize = 10;
+    /**
+     * 查询类型 (COUNT_AND_LIST 列表和总数查询, LIST 仅列表查询, COUNT 仅总数查询)
+     */
+    @TableField(exist = false)
+    private String selectType;
 }
