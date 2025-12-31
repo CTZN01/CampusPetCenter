@@ -1,5 +1,11 @@
 package com.ashen.petcommon.utils;
 
+import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Enumeration;
 import java.util.UUID;
 
 public final class IdGenerator {
@@ -23,10 +29,33 @@ public final class IdGenerator {
     private long sequence = 0L;
     private long lastTimestamp = -1L;
 
-    private static final IdGenerator INSTANCE = new IdGenerator(0, 0);
+    /**
+     * Default singleton instance.
+     * <p>
+     * Uses a best-effort, deterministic machine fingerprint to derive {@code datacenterId} and {@code workerId},
+     * so different nodes in a cluster are far less likely to collide.
+     */
+    private static final IdGenerator INSTANCE = createDefaultInstance();
 
+    /**
+     * Backward-compatible accessor.
+     */
     public static IdGenerator getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Preferred API: generate a new snowflake-like id without explicitly fetching the singleton.
+     */
+    public static long generateId() {
+        return INSTANCE.nextId();
+    }
+
+    /**
+     * Preferred API: string form.
+     */
+    public static String nextIdStr() {
+        return Long.toString(generateId());
     }
 
     public IdGenerator(long workerId, long datacenterId) {
@@ -40,8 +69,7 @@ public final class IdGenerator {
         this.datacenterId = datacenterId;
     }
 
-    // 重命名为 generateId()
-    public synchronized long generateId() {
+    public synchronized long nextId() {
         long timestamp = currentTime();
 
         if (timestamp < lastTimestamp) {
@@ -67,6 +95,10 @@ public final class IdGenerator {
                 | sequence;
     }
 
+    /**
+     * Instance form kept for compatibility.
+     * Prefer {@link #nextIdStr()} when you don't need a custom instance.
+     */
     public String generateIdStr() {
         return Long.toString(generateId());
     }
@@ -85,5 +117,73 @@ public final class IdGenerator {
 
     private long currentTime() {
         return System.currentTimeMillis();
+    }
+
+    private static IdGenerator createDefaultInstance() {
+        long fingerprint = machineFingerprint();
+        long datacenterId = (fingerprint >>> 5) & MAX_DATACENTER_ID;
+        long workerId = fingerprint & MAX_WORKER_ID;
+        return new IdGenerator(workerId, datacenterId);
+    }
+
+    /**
+     * Best-effort stable fingerprint for the current process/machine.
+     *
+     * <p>Inputs (when available): MAC addresses, hostname, and runtime MXBean name (often pid@host).
+     */
+    private static long machineFingerprint() {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+            // MAC addresses
+            try {
+                Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
+                if (nis != null) {
+                    while (nis.hasMoreElements()) {
+                        NetworkInterface ni = nis.nextElement();
+                        byte[] mac = ni.getHardwareAddress();
+                        if (mac != null && mac.length > 0) {
+                            md.update(mac);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+                // ignored
+            }
+
+            // Hostname
+            try {
+                String host = InetAddress.getLocalHost().getHostName();
+                if (host != null) {
+                    md.update(host.getBytes(StandardCharsets.UTF_8));
+                }
+            } catch (Exception ignored) {
+                // ignored
+            }
+
+            // pid@host (usually)
+            try {
+                String runtime = ManagementFactory.getRuntimeMXBean().getName();
+                if (runtime != null) {
+                    md.update(runtime.getBytes(StandardCharsets.UTF_8));
+                }
+            } catch (Exception ignored) {
+                // ignored
+            }
+
+            byte[] digest = md.digest();
+            long v = 0L;
+            // use first 8 bytes as unsigned-ish long
+            for (int i = 0; i < 8 && i < digest.length; i++) {
+                v = (v << 8) | (digest[i] & 0xFFL);
+            }
+
+            // fold to 10 bits (5+5)
+            long folded = v ^ (v >>> 32) ^ (v >>> 16);
+            return folded & ((1L << (WORKER_ID_BITS + DATACENTER_ID_BITS)) - 1);
+        } catch (Exception e) {
+            // last resort: time-based value; still masks to 10 bits
+            return (System.nanoTime() ^ System.currentTimeMillis()) & ((1L << (WORKER_ID_BITS + DATACENTER_ID_BITS)) - 1);
+        }
     }
 }

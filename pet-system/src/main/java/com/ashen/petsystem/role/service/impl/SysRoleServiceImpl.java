@@ -2,11 +2,14 @@ package com.ashen.petsystem.role.service.impl;
 
 import com.ashen.petcommon.model.BaseException;
 import com.ashen.petcommon.utils.IdGenerator;
+import com.ashen.petcommon.utils.PageSelectUtils;
 import com.ashen.petsystem.exception.SysBaseExceptionEnum;
+import com.ashen.petsystem.role.model.dto.SysRoleDTO;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ashen.petsystem.role.model.entity.SysRole;
 import com.ashen.petsystem.role.service.SysRoleService;
 import com.ashen.petsystem.role.mapper.SysRoleMapper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.stereotype.Service;
 
 /**
@@ -26,12 +29,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole>
         if (existingRole != null) {
             throw new BaseException(SysBaseExceptionEnum.SysBaseException000006);
         }
-        role.setRoleId(IdGenerator.getInstance().generateId());
+        role.setRoleId(IdGenerator.generateId());
         role.setIsEnabled(1);
         return this.save(role);
     }
+
+    @Override
+    public PageInfo<SysRole> listPage(SysRoleDTO roleDTO) {
+        return PageSelectUtils.selectPage(roleDTO, super::list);
+    }
 }
-
-
-
-

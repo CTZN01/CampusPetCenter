@@ -3,12 +3,14 @@ package com.ashen.petsystem.role.controller;
 import com.ashen.petcommon.annotation.RequireRoles;
 import com.ashen.petcommon.constant.RoleConstant;
 import com.ashen.petcommon.model.Result;
+import com.ashen.petsystem.role.model.dto.SysRoleDTO;
 import com.ashen.petsystem.role.model.entity.SysRole;
 import com.ashen.petsystem.role.service.SysRoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 
@@ -19,6 +21,13 @@ public class RoleController {
 
     @Autowired
     private SysRoleService sysRoleService;
+
+    @Operation(summary = "分页查询角色")
+    @PostMapping("/listPage")
+    @RequireRoles(RoleConstant.ADMIN)
+    public Result<PageInfo<SysRole>> listPage(@RequestBody SysRoleDTO roleDTO) {
+        return Result.success(sysRoleService.listPage(roleDTO));
+    }
 
     @Operation(summary = "获取所有角色列表")
     @GetMapping("/list")

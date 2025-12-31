@@ -65,7 +65,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
         }
         SysUser sysUser = new SysUser();
         BeanCopyUtils.copyProperties(sysUser, registerDTO);
-        sysUser.setUserId(IdGenerator.getInstance().generateId());
+        sysUser.setUserId(IdGenerator.generateId());
         // 2. 密码加密
         String rawPassword = registerDTO.getPassword();
         if(StringUtils.isBlank(rawPassword)){
@@ -82,7 +82,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
 
         if (defaultRole != null) {
             SysUserRole userRole = new SysUserRole();
-            userRole.setUserRoleId(IdGenerator.getInstance().generateId());
+            userRole.setUserRoleId(IdGenerator.generateId());
             userRole.setUserId(sysUser.getUserId());
             userRole.setRoleId(defaultRole.getRoleId());
             sysUserRoleService.save(userRole);
