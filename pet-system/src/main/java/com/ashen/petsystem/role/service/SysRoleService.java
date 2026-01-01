@@ -15,4 +15,6 @@ public interface SysRoleService extends IService<SysRole> {
     Boolean add(SysRole role);
 
     PageInfo<SysRole> listPage(SysRoleDTO roleDTO);
+
+    Boolean disableRole(Long roleId);
 }

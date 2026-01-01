@@ -6,6 +6,7 @@ import com.ashen.petcommon.model.Result;
 import com.ashen.petcommon.utils.BeanCopyUtils;
 import com.ashen.petcommon.utils.IdGenerator;
 import com.ashen.petcommon.utils.JwtUtils;
+import com.ashen.petcommon.utils.PageSelectUtils;
 import com.ashen.petsystem.exception.SysBaseExceptionEnum;
 import com.ashen.petsystem.role.model.entity.SysRole;
 import com.ashen.petsystem.role.model.entity.SysUserRole;
@@ -22,6 +23,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ashen.petsystem.user.model.entity.SysUser;
 import com.ashen.petsystem.user.service.SysUserService;
 import com.ashen.petsystem.user.mapper.SysUserMapper;
+import com.github.pagehelper.PageInfo;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +37,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
-* @author 17868
-* @description 针对表【sys_user(用户表)】的数据库操作Service实现
-* @createDate 2025-12-14 22:56:48
-*/
+ * @author 17868
+ * @description 针对表【sys_user(用户表)】的数据库操作Service实现
+ * @createDate 2025-12-14 22:56:48
+ */
 @Service
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
-    implements SysUserService{
+        implements SysUserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -54,7 +56,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysUserRegisterDTO registerUser(SysUserRegisterDTO registerDTO) {
-        if(registerDTO == null){
+        if (registerDTO == null) {
             throw new BaseException(SysBaseExceptionEnum.SysBaseException000001);
         }
         // 1. 检查用户名是否存在
@@ -68,7 +70,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
         sysUser.setUserId(IdGenerator.generateId());
         // 2. 密码加密
         String rawPassword = registerDTO.getPassword();
-        if(StringUtils.isBlank(rawPassword)){
+        if (StringUtils.isBlank(rawPassword)) {
             throw new BaseException(SysBaseExceptionEnum.SysBaseException000002);
         }
         sysUser.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
@@ -95,11 +97,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
     public Result<SysUserInfoVO> loginUser(SysUserLoginDTO loginDTO, HttpServletResponse response) {
         SysUser dbUser = this.getOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, loginDTO.getUsername()));
         // 校验用户是否存在
-        if(null == dbUser){
+        if (null == dbUser) {
             throw new BaseException(SysBaseExceptionEnum.SysBaseException000004);
         }
         // 校验密码
-        if(!passwordEncoder.matches(loginDTO.getPassword(), dbUser.getPassword())){
+        if (!passwordEncoder.matches(loginDTO.getPassword(), dbUser.getPassword())) {
             throw new BaseException(SysBaseExceptionEnum.SysBaseException000004);
         }
 
@@ -175,6 +177,29 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser>
         }
         // 2. 加密新密码并保存
         sysUser.setPassword(passwordEncoder.encode(passwordDTO.getNewPassword()));
+        return this.updateById(sysUser);
+    }
+
+    @Override
+    public PageInfo<SysUserInfoVO> listPage(SysUser sysUser) {
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(StringUtils.isNotBlank(sysUser.getUsername()), SysUser::getUsername, sysUser.getUsername());
+        queryWrapper.like(StringUtils.isNotBlank(sysUser.getNickname()), SysUser::getNickname, sysUser.getNickname());
+        queryWrapper.eq(sysUser.getIsEnabled() != null, SysUser::getIsEnabled, sysUser.getIsEnabled());
+        queryWrapper.orderByDesc(SysUser::getCreateTime);
+        PageInfo<SysUser> pageInfo = PageSelectUtils.selectPage(sysUser, () -> this.list(queryWrapper));
+        List<SysUserInfoVO> sysUserInfoVOS = BeanCopyUtils.copyListProperties(pageInfo.getList(), SysUserInfoVO.class);
+
+        return new PageInfo<>(sysUserInfoVOS);
+    }
+
+    @Override
+    public Boolean disableUser(Long userId) {
+        SysUser sysUser = this.getById(userId);
+        if (sysUser == null) {
+            throw new BaseException(SysBaseExceptionEnum.SysBaseException000003);
+        }
+        sysUser.setIsEnabled(0);
         return this.updateById(sysUser);
     }
 

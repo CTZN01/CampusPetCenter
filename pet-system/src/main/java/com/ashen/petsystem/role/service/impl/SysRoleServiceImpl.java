@@ -38,4 +38,14 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole>
     public PageInfo<SysRole> listPage(SysRoleDTO roleDTO) {
         return PageSelectUtils.selectPage(roleDTO, super::list);
     }
+
+    @Override
+    public Boolean disableRole(Long roleId) {
+        SysRole role = this.getById(roleId);
+        if (role == null) {
+            throw new BaseException(SysBaseExceptionEnum.SysBaseException000008);
+        }
+        role.setIsEnabled(0);
+        return this.updateById(role);
+    }
 }

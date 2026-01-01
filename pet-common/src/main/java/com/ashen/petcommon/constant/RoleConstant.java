@@ -5,7 +5,7 @@ package com.ashen.petcommon.constant;
  */
 public class RoleConstant {
     /**
-     * 学生 (默认角色)
+     * 普通用户
      */
     public static final String USER = "USER";
 
@@ -19,4 +19,9 @@ public class RoleConstant {
      * 访客
      */
     public static final String GUEST = "GUEST";
+
+    /**
+     * 运营人员
+     */
+    public static final String OPERATOR = "OPERATOR";
 }

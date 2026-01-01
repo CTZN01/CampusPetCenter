@@ -4,7 +4,6 @@ package com.ashen.petsystem.user.controller;
 import com.ashen.petcommon.annotation.RequireRoles;
 import com.ashen.petcommon.constant.RoleConstant;
 import com.ashen.petcommon.model.Result;
-import com.ashen.petcommon.utils.BeanCopyUtils;
 import com.ashen.petcommon.utils.UserUtils;
 import com.ashen.petsystem.user.model.dto.SysUserLoginDTO;
 import com.ashen.petsystem.user.model.dto.SysUserPasswordDTO;
@@ -13,7 +12,7 @@ import com.ashen.petsystem.user.model.dto.SysUserUpdateDTO;
 import com.ashen.petsystem.user.model.entity.SysUser;
 import com.ashen.petsystem.user.model.vo.SysUserInfoVO;
 import com.ashen.petsystem.user.service.SysUserService;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -62,13 +61,15 @@ public class UserController {
     @Operation(summary = "分页获取用户列表 (管理员)")
     @GetMapping("/list")
     @RequireRoles(RoleConstant.ADMIN)
-    public Result<Page<SysUserInfoVO>> listUsers(@RequestParam(defaultValue = "1") Integer pageNum,
-                                           @RequestParam(defaultValue = "10") Integer pageSize) {
-        Page<SysUser> page = sysUserService.page(new Page<>(pageNum, pageSize));
-        Page<SysUserInfoVO> voPage = new Page<>();
-        BeanCopyUtils.copyProperties(voPage, page);
-        voPage.setRecords(BeanCopyUtils.copyListProperties(page.getRecords(), SysUserInfoVO.class));
-        return Result.success(voPage);
+    public Result<PageInfo<SysUserInfoVO>> listUsers(@RequestBody SysUser sysUser) {
+        return Result.success(sysUserService.listPage(sysUser));
+    }
+
+    @Operation(summary = "禁用用户 (管理员)")
+    @PostMapping("/disable")
+    @RequireRoles(RoleConstant.ADMIN)
+    public Result<Boolean> disableUser(Long userId) {
+        return Result.success(sysUserService.disableUser(userId));
     }
 
     @Operation(summary = "删除用户 (管理员)")

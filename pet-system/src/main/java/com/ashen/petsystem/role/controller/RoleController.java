@@ -44,16 +44,23 @@ public class RoleController {
     }
 
     @Operation(summary = "修改角色")
-    @PutMapping("/update")
+    @PostMapping("/update")
     @RequireRoles(RoleConstant.ADMIN)
     public Result<Boolean> update(@RequestBody SysRole role) {
         return Result.success(sysRoleService.updateById(role));
     }
 
-    @Operation(summary = "删除角色")
-    @DeleteMapping("/delete/{roleId}")
+    @Operation(summary = "禁用角色")
+    @PostMapping("/disable")
     @RequireRoles(RoleConstant.ADMIN)
-    public Result<Boolean> delete(@PathVariable Long roleId) {
+    public Result<Boolean> disable(Long roleId) {
+        return Result.success(sysRoleService.disableRole(roleId));
+    }
+
+    @Operation(summary = "删除角色")
+    @PostMapping("/delete")
+    @RequireRoles(RoleConstant.ADMIN)
+    public Result<Boolean> delete(Long roleId) {
         return Result.success(sysRoleService.removeById(roleId));
     }
 }

@@ -8,6 +8,7 @@ import com.ashen.petsystem.user.model.dto.SysUserUpdateDTO;
 import com.ashen.petsystem.user.model.entity.SysUser;
 import com.ashen.petsystem.user.model.vo.SysUserInfoVO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.github.pagehelper.PageInfo;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
@@ -25,4 +26,8 @@ public interface SysUserService extends IService<SysUser> {
     Boolean updateUserInfo(Long curUserId, SysUserUpdateDTO updateDTO);
 
     Boolean changePassword(Long curUserId, SysUserPasswordDTO passwordDTO);
+
+    PageInfo<SysUserInfoVO> listPage(SysUser sysUser);
+
+    Boolean disableUser(Long userId);
 }
